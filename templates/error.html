@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Vlog2Reels</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 3rem;
+        }
+        .header {
+            margin-bottom: 2rem;
+        }
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        .error-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .error-icon {
+            font-size: 5rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+        .home-btn {
+            background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4);
+            border: none;
+            font-size: 1.1rem;
+            padding: 12px 30px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(45deg, #5851DB, #833AB4, #C13584);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header text-center">
+            <h1 class="logo">Vlog2Reels</h1>
+            <p class="lead text-muted">Oops! Something went wrong</p>
+        </div>
+        
+        <div class="error-container text-center">
+            <div class="error-icon">⚠️</div>
+            <h3 class="mb-3">Error Processing Your Request</h3>
+            
+            <div class="alert alert-danger mb-4">
+                {{ error }}
+            </div>
+            
+            <p class="mb-4">Let's try again with a different video or URL.</p>
+            
+            <div class="d-grid gap-2 col-md-6 mx-auto">
+                <a href="/" class="btn btn-primary home-btn">Back to Home</a>
+            </div>
+            
+            <div class="mt-4">
+                <p class="text-muted">Common issues that might cause errors:</p>
+                <ul class="text-start text-muted">
+                    <li>The URL is not a valid YouTube video</li>
+                    <li>The video is private or restricted</li>
+                    <li>The video is too large for processing</li>
+                    <li>Temporary server issues</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

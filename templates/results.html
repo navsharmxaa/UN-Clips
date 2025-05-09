@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Reels Are Ready - Vlog2Reels</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 3rem;
+            padding-bottom: 3rem;
+        }
+        .header {
+            margin-bottom: 2rem;
+        }
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        .results-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .success-icon {
+            font-size: 3rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+        .video-item {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            transition: all 0.3s;
+        }
+        .video-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        .video-preview {
+            position: relative;
+            padding-top: 177.78%; /* 9:16 aspect ratio */
+            background-color: #000;
+        }
+        .video-preview video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .video-controls {
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        .download-btn {
+            background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4);
+            border: none;
+            transition: all 0.3s;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(45deg, #5851DB, #833AB4, #C13584);
+        }
+        .home-btn {
+            background-color: #6c757d;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header text-center">
+            <h1 class="logo">Vlog2Reels</h1>
+            <p class="lead text-muted">Your Instagram Reels are ready!</p>
+        </div>
+        
+        <div class="results-container">
+            <div class="text-center mb-4">
+                <div class="success-icon">✅</div>
+                <h3>Processing Complete</h3>
+                <p class="text-muted">Your video has been successfully transformed into Instagram Reels format.</p>
+            </div>
+            
+            <div id="videoResults" class="row">
+                <!-- Video items will be added here dynamically via JavaScript -->
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Loading your videos...</p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p class="mb-3">Want to convert another video?</p>
+                <a href="/" class="btn btn-secondary home-btn">Back to Home</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get the job ID from the URL
+        const jobId = "{{ job_id }}";
+        
+        // Function to fetch the processing results
+        async function fetchResults() {
+            try {
+                const response = await fetch(`/status/${jobId}`);
+                const data = await response.json();
+                
+                if (data.status === "completed" && data.output_files) {
+                    // Clear loading indicator
+                    document.getElementById('videoResults').innerHTML = "";
+                    
+                    // Add each video to the results
+                    data.output_files.forEach((filename, index) => {
+                        const videoItem = document.createElement('div');
+                        videoItem.className = "col-md-6";
+                        videoItem.innerHTML = `
+                            <div class="video-item">
+                                <div class="video-preview">
+                                    <video controls>
+                                        <source src="/download/${jobId}/${filename}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                                <div class="video-controls">
+                                    <h5>Reel ${index + 1}</h5>
+                                    <a href="/download/${jobId}/${filename}" download="${filename}" class="btn btn-primary download-btn">
+                                        Download Reel
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                        document.getElementById('videoResults').appendChild(videoItem);
+                    });
+                    
+                } else if (data.status === "error") {
+                    // Show error message
+                    document.getElementById('videoResults').innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-danger" role="alert">
+                                An error occurred while processing your video: ${data.message || "Unknown error"}
+                            </div>
+                            <div class="text-center">
+                                <a href="/" class="btn btn-primary">Try Again</a>
+                            </div>
+                        </div>
+                    `;
+                    
+                } else {
+                    // If still processing, redirect back to processing page
+                    window.location.href = `/processing/${jobId}`;
+                }
+                
+            } catch (error) {
+                console.error("Error fetching results:", error);
+                document.getElementById('videoResults').innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger" role="alert">
+                            Failed to load results. Please try again.
+                        </div>
+                        <div class="text-center">
+                            <a href="/" class="btn btn-primary">Back to Home</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Fetch results when the page loads
+        window.onload = fetchResults;
+    </script>
+</body>
+</html>
