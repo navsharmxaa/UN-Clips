@@ -49,7 +49,7 @@ async def process_youtube_video(youtube_url: str, job_id: str, temp_dir: Path, d
         
         # Use yt-dlp to download the video asynchronously
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            await loop.run_in_executor(None, lambda: ydl.download([url]))
+            await loop.run_in_executor(None, lambda: ydl.download([youtube_url]))
         
         # Return the path of the downloaded video
         return str(temp_dir / 'original.mp4')
@@ -59,9 +59,10 @@ async def process_youtube_video(youtube_url: str, job_id: str, temp_dir: Path, d
         raise
     
     finally:
-        # Clean up temporary files
-        if job_temp_dir.exists():
-            shutil.rmtree(job_temp_dir)
+    try:
+        for file in temp_dir.glob("*"):
+            file.unlink()
+    except Exception as cleanup
 
 async def download_youtube_video(url: str, temp_dir: Path) -> str:
     """
