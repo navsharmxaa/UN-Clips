@@ -62,7 +62,8 @@ async def process_youtube_video(youtube_url: str, job_id: str, temp_dir: Path, d
     try:
         for file in temp_dir.glob("*"):
             file.unlink()
-    except Exception as cleanup
+    except Exception as cleanup_err:
+        logger.warning(f"Failed to clean up temp files: {cleanup_err}")
 
 async def download_youtube_video(url: str, temp_dir: Path) -> str:
     """
