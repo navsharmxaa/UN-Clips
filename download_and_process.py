@@ -9,7 +9,7 @@ from typing import List, Tuple, Dict, Optional
 import tempfile
 
 # Video processing
-from pytube import YouTube
+import yt_dlp
 from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 import subprocess
 
@@ -22,57 +22,40 @@ TARGET_HEIGHT = 1920  # 9:16 aspect ratio for Instagram Reels
 TARGET_WIDTH = 1080
 MAX_CLIP_DURATION = 60  # seconds
 
-async def process_youtube_video(youtube_url: str, job_id: str, temp_dir: Path, output_dir: Path) -> List[str]:
+import yt_dlp
+
+async def download_youtube_video(url: str, temp_dir: Path) -> str:
     """
-    Main function to process YouTube videos for Instagram Reels.
+    Download a YouTube video using yt-dlp.
     
     Args:
-        youtube_url: URL of the YouTube video
-        job_id: Unique identifier for this processing job
-        temp_dir: Directory for temporary files
-        output_dir: Directory for output files
+        url: YouTube URL
+        temp_dir: Directory to save the downloaded video
         
     Returns:
-        List of paths to output video files
+        Path to the downloaded video file
     """
-    job_temp_dir = temp_dir / job_id
-    job_output_dir = output_dir / job_id
-    
-    job_temp_dir.mkdir(exist_ok=True)
-    job_output_dir.mkdir(exist_ok=True)
-    
     try:
-        # Step 1: Download YouTube video
-        logger.info(f"Downloading video from {youtube_url}")
-        video_path = await download_youtube_video(youtube_url, job_temp_dir)
+        loop = asyncio.get_event_loop()
         
-        # Step 2: Process audio (replace with Hindi or keep original)
-        # For now, we'll keep the original audio
-        # In a future version, you could implement TTS integration here
+        # Define yt-dlp options for downloading the video
+        ydl_opts = {
+            'format': 'bestvideo+bestaudio/best',  # Select the best video and audio combination
+            'outtmpl': str(temp_dir / 'original.mp4'),  # Path to save the video
+            'quiet': False,  # Show output for debugging
+            'retries': 3,  # Retry logic (number of retries)
+            'noplaylist': True,  # Don't download playlist (if URL is playlist)
+        }
         
-        # Step 3: Split video into chunks
-        logger.info("Splitting video into chunks")
-        chunk_paths = await split_video_into_chunks(video_path, job_temp_dir)
+        # Use yt-dlp to download the video asynchronously
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            await loop.run_in_executor(None, lambda: ydl.download([url]))
         
-        # Step 4: Process each chunk with face detection and reframing
-        logger.info("Processing video chunks with face detection")
-        output_files = []
-        
-        for i, chunk_path in enumerate(chunk_paths):
-            logger.info(f"Processing chunk {i+1} of {len(chunk_paths)}")
-            output_path = job_output_dir / f"reels_clip_{i+1}.mp4"
-            
-            # Process the chunk with face tracking and reframing
-            success = await process_video_chunk(chunk_path, str(output_path))
-            
-            if success:
-                output_files.append(str(output_path))
-        
-        logger.info(f"Processing complete. Generated {len(output_files)} clips.")
-        return output_files
+        # Return the path of the downloaded video
+        return str(temp_dir / 'original.mp4')
     
     except Exception as e:
-        logger.error(f"Error processing video: {str(e)}")
+        logger.error(f"Error downloading YouTube video with yt-dlp: {str(e)}")
         raise
     
     finally:
