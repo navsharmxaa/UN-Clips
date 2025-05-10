@@ -24,7 +24,7 @@ MAX_CLIP_DURATION = 60  # seconds
 
 import yt_dlp
 
-async def download_youtube_video(url: str, temp_dir: Path) -> str:
+async def process_youtube_video(url: str, temp_dir: Path) -> str:
     """
     Download a YouTube video using yt-dlp.
     
