@@ -35,6 +35,7 @@ async def process_youtube_video(youtube_url: str, job_id: str, temp_dir: Path, d
             'quiet': False,
             'retries': 3,
             'noplaylist': True,
+            'cookies': 'cookies.txt',
         }
 
         # Use yt-dlp to download the video asynchronously
