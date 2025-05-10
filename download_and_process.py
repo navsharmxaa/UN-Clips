@@ -25,46 +25,28 @@ MAX_CLIP_DURATION = 60  # seconds
 import yt_dlp
 
 async def process_youtube_video(youtube_url: str, job_id: str, temp_dir: Path, downloads_dir: Path):
-    """
-    Download a YouTube video using yt-dlp.
-    
-    Args:
-        url: YouTube URL
-        temp_dir: Directory to save the downloaded video
-        
-    Returns:
-        Path to the downloaded video file
-    """
     try:
         loop = asyncio.get_event_loop()
-        
+
         # Define yt-dlp options for downloading the video
         ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',  # Select the best video and audio combination
-            'outtmpl': str(temp_dir / 'original.mp4'),  # Path to save the video
-            'quiet': False,  # Show output for debugging
-            'retries': 3,  # Retry logic (number of retries)
-            'noplaylist': True,  # Don't download playlist (if URL is playlist)
+            'format': 'bestvideo+bestaudio/best',
+            'outtmpl': str(temp_dir / 'original.mp4'),
+            'quiet': False,
+            'retries': 3,
+            'noplaylist': True,
         }
-        
+
         # Use yt-dlp to download the video asynchronously
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             await loop.run_in_executor(None, lambda: ydl.download([youtube_url]))
-        
+
         # Return the path of the downloaded video
         return str(temp_dir / 'original.mp4')
-    
+
     except Exception as e:
         logger.error(f"Error downloading YouTube video with yt-dlp: {str(e)}")
         raise
-    
-        finally:
-            try:
-                for file in temp_dir.glob("*"):
-                    file.unlink()
-            except Exception as cleanup_err:
-                logger.warning(f"Failed to clean up temp files: {cleanup_err}")
-
 
 async def download_youtube_video(url: str, temp_dir: Path) -> str:
     """
