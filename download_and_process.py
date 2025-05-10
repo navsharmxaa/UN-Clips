@@ -58,8 +58,8 @@ async def process_youtube_video(youtube_url: str, job_id: str, temp_dir: Path, d
         logger.error(f"Error downloading YouTube video with yt-dlp: {str(e)}")
         raise
     
-        finally:
-            try:
+         finally:
+        try:
             for file in temp_dir.glob("*"):
                 file.unlink()
         except Exception as cleanup_err:
