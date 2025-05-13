@@ -4,11 +4,11 @@ This web application automatically transforms YouTube vlog videos into Instagram
 1. Downloading YouTube videos
 2. Splitting them into 60-second clips
 3. Converting them to vertical (9:16) format with AI face tracking
-4. (Optionally) Replacing English audio with Hindi audio
+4. (Optionally) Replacing English audio with Hindi audio (future enhancement)
 
 ## 🎯 Features
 
-- **YouTube Video Download**: Easily download any public YouTube video
+- **YouTube Video Download**: Easily download any public YouTube video using the YouTube Data API
 - **AI Face Detection & Tracking**: Intelligently reframes videos to keep faces centered
 - **Vertical Format Conversion**: Transforms landscape videos to 9:16 aspect ratio for Instagram Reels
 - **Smart Clip Splitting**: Automatically splits longer videos into Reels-ready 60-second clips
@@ -19,7 +19,8 @@ This web application automatically transforms YouTube vlog videos into Instagram
 - **Frontend**: HTML/CSS with Bootstrap 5 and Jinja2 templates
 - **Backend**: Python + FastAPI
 - **Video Processing**:
-  - `pytube` for YouTube video download
+  - YouTube Data API for video metadata and streaming URLs
+  - `ffmpeg` for video downloading and processing
   - `moviepy` for video editing and audio synchronization
   - `OpenCV` (cv2) for face detection and tracking
 - **Deployment**: Render.com (containerized app)
@@ -45,17 +46,12 @@ This web application automatically transforms YouTube vlog videos into Instagram
    pip install -r requirements.txt
    ```
 
-4. **Create necessary directories**
+4. **Run the development server**
    ```bash
-   mkdir -p temp downloads static
+   uvicorn app.main:app --reload
    ```
 
-5. **Run the development server**
-   ```bash
-   uvicorn main:app --reload
-   ```
-
-6. **Access the application**
+5. **Access the application**
    Open your browser and navigate to `http://localhost:8000`
 
 ### Deployment to Render
@@ -66,8 +62,8 @@ This web application automatically transforms YouTube vlog videos into Instagram
    - Connect your GitHub repository
    - Select "Python" as the runtime environment
    - Set build command: `pip install -r requirements.txt`
-   - Set start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-   - Add environment variables as needed
+   - Set start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - Add the `YOUTUBE_API_KEY` environment variable in the Render dashboard or `render.yaml`
 
 3. **Deploy**
    Render will automatically build and deploy your application.
@@ -76,19 +72,28 @@ This web application automatically transforms YouTube vlog videos into Instagram
 
 ```
 vlog2reels/
-├── main.py                 # FastAPI application entry point
-├── download_and_process.py # Video processing logic
-├── requirements.txt        # Python dependencies
-├── Dockerfile              # Docker configuration
-├── render.yaml             # Render deployment configuration
-├── static/                 # Static assets (CSS, JS)
-├── templates/              # HTML templates
-│   ├── index.html          # Homepage with form
-│   ├── processing.html     # Processing status page
-│   ├── results.html        # Results page with downloadable videos
-│   └── error.html          # Error page
-├── temp/                   # Temporary storage for processing
-└── downloads/              # Output directory for processed videos
+├── app/
+│   ├── __init__.py
+│   ├── main.py                 # FastAPI application entry point
+│   ├── download_and_process.py # Video processing logic
+│   ├── templates/              # HTML templates
+│   │   ├── index.html          # Homepage with form
+│   │   ├── processing.html     # Processing status page
+│   │   ├── results.html        # Results page with downloadable videos
+│   │   └── error.html          # Error page
+│   ├── static/                 # Static assets (CSS, JS)
+│   │   ├── css/
+│   │   │   └── styles.css
+│   │   ├── js/
+│   │   │   └── scripts.js
+│   │   └── images/
+│   │       └── logo.png
+├── temp/                       # Temporary storage for processing (created at runtime)
+├── downloads/                  # Output directory for processed videos (created at runtime)
+├── requirements.txt            # Python dependencies
+├── Dockerfile                  # Docker configuration
+├── render.yaml                 # Render deployment configuration
+└── README.md                   # Project documentation
 ```
 
 ## 🧠 How It Works
@@ -98,7 +103,8 @@ vlog2reels/
    - Assigns a unique job ID for processing
 
 2. **Backend Processing**
-   - Downloads the YouTube video using `pytube`
+   - Fetches video metadata and streaming URLs using the YouTube Data API
+   - Downloads the video using `ffmpeg`
    - Splits the video into 60-second chunks
    - For each chunk:
      - Detects and tracks faces using OpenCV
@@ -125,4 +131,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - OpenCV community for face detection algorithms
 - FastAPI for the efficient web framework
-- Pytube for YouTube integration capabilities
+- YouTube Data API for video metadata and streaming URLs
+- FFmpeg for video processing
