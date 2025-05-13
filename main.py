@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form, UploadFile, File
+from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
@@ -30,7 +30,7 @@ DOWNLOADS_DIR = Path("downloads")
 TEMP_DIR.mkdir(exist_ok=True)
 DOWNLOADS_DIR.mkdir(exist_ok=True)
 
-@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
@@ -45,7 +45,6 @@ async def process_video(request: Request, youtube_url: str = Form(...)):
         logger.info(f"Processing YouTube URL: {youtube_url}")
         
         # Process the video asynchronously
-        # This is a non-blocking call that will run in the background
         asyncio.create_task(
             process_video_task(youtube_url, job_id)
         )
@@ -72,15 +71,21 @@ async def process_video(request: Request, youtube_url: str = Form(...)):
 
 async def process_video_task(youtube_url: str, job_id: str):
     """Background task to process the video"""
+    temp_dir = TEMP_DIR / job_id
+    temp_dir.mkdir(exist_ok=True)
+    output_path = DOWNLOADS_DIR / job_id / "processed_video.mp4"
+    
     try:
-        output_files = await process_youtube_video(youtube_url, job_id, TEMP_DIR, DOWNLOADS_DIR)
+        # Process the video
+        await process_youtube_video(youtube_url, temp_dir, str(output_path))
+        
         # Update status file to indicate completion
         status_file = DOWNLOADS_DIR / job_id / "status.json"
         with open(status_file, "w") as f:
             import json
             json.dump({
                 "status": "completed", 
-                "output_files": [os.path.basename(f) for f in output_files]
+                "output_file": os.path.basename(output_path)
             }, f)
     except Exception as e:
         logger.error(f"Background task error: {str(e)}")
@@ -89,6 +94,9 @@ async def process_video_task(youtube_url: str, job_id: str):
         with open(status_file, "w") as f:
             import json
             json.dump({"status": "error", "message": str(e)}, f)
+    finally:
+        # Cleanup temporary directory
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 @app.get("/status/{job_id}")
 async def get_status(job_id: str):
@@ -122,8 +130,6 @@ async def view_results(request: Request, job_id: str):
             "job_id": job_id
         }
     )
-
-# Cleanup old files periodically (optional, could be implemented with a background task)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
