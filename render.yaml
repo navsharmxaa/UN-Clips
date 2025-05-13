@@ -3,12 +3,12 @@ services:
     name: vlog2reels
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: gunicorn main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
       - key: YOUTUBE_API_KEY
-        value: AIzaSyBtMefnS41ot61YOCb4LxkscfQKteVBCZU  # Replace <your-api-key> with your actual YouTube Data API key
+        value: AIzaSyBtMefnS41ot61YOCb4LxkscfQKteVBCZU  # Replace with your actual API key
     disk:
       name: data
       mountPath: /app/data
